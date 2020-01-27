@@ -84,11 +84,8 @@ while True:
     if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
         movement *= movement_speed
     camera.move_by(movement)
-    # movement = np.multiply((movement_x, movement_y, movement_z), delta_time * movement_speed * (1 + sprinting * sprint_multiplier))
-    # camera_pos_uniform.value = tuple(np.add(movement, camera_pos_uniform.value))
     camera_rotation_mat_uniform.value = tuple(camera.calculate_rotation_matrix().flatten())
     camera_position_uniform.value = tuple(camera.location)
     # render
     vao.render(moderngl.TRIANGLE_STRIP)
     pygame.display.flip()
-    # pygame.time.delay(1)
