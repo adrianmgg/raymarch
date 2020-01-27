@@ -20,6 +20,9 @@ class Camera:
             (sx*sz-cx*sy*cz, sx*cz-cx*sy*sz, cx*cy)
         ])
 
+    def move_by(self, movement_vector):
+        self.location += np.dot(movement_vector, self.calculate_rotation_matrix())
+
     # region location getters/setters
     @property
     def x(self):

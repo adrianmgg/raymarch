@@ -4,9 +4,12 @@ import pygame
 
 from raymarch.camera import Camera
 from raymarch.shaders.shader_load_helper import read_shader_file
+from raymarch.util.numpy import normalize
 
-movement_speed = 1.25  # units per second
+movement_speed = 2  # units per second
+"""movement speed in units per second"""
 sprint_multiplier = 1.5
+"""if sprint key is held, movement speed is multiplied by this value"""
 
 
 pygame.init()
@@ -33,8 +36,9 @@ vao = ctx.simple_vertex_array(program, vbo, 'in_vert')
 
 camera = Camera()
 
-pygame.event.set_grab(True)
-pygame.mouse.set_visible(False)
+focus_toggle_countdown = 0
+"""countdown to when we can stop ignoring MOUSEMOTION events."""
+focused = False
 
 start_time = pygame.time.get_ticks()
 prev_time = start_time
@@ -49,29 +53,37 @@ while True:
             pygame.quit()
             quit()
         elif event.type == pygame.KEYDOWN:
-            pass
-            # if event.key == pygame.K_ESCAPE:
-            #     if focused:
-            #         pygame.event.set_grab(False)
-            #         pygame.mouse.set_visible(True)
-            #         focused = False
-            #     else:
-            #         pygame.event.set_grab(True)
-            #         pygame.mouse.set_visible(False)
-            #         focused = True
+            if event.key == pygame.K_ESCAPE:
+                if focused:
+                    pygame.event.set_grab(False)
+                    pygame.mouse.set_visible(True)
+                    focused = False
+                else:
+                    pygame.event.set_grab(True)
+                    pygame.mouse.set_visible(False)
+                    focused = True
+                focus_toggle_countdown = 2
         elif event.type == pygame.MOUSEMOTION:
-            camera.rotation_y -= event.rel[0] / 100
-            camera.rotation_x -= event.rel[1] / 100
+            if focus_toggle_countdown > 0:
+                # 2 event loops after we toggle focus, the mouse gets moved to the center of the screen.
+                # This causes the camera to abruptly jump whenever we toggle focus, unless we ignore that event.
+                focus_toggle_countdown -= 1
+                continue
+            if focused:
+                camera.rotation_y -= event.rel[0] / 100
+                camera.rotation_x -= event.rel[1] / 100
     # handle keyboard input
     keys = pygame.key.get_pressed()
-    movement_x = keys[pygame.K_d] - keys[pygame.K_a]
-    movement_y = keys[pygame.K_q] - keys[pygame.K_e]
-    movement_z = keys[pygame.K_w] - keys[pygame.K_s]
-    sprinting = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
-    movement_delta = delta_time * movement_speed * (1 + sprinting * sprint_multiplier)
-    camera.x += movement_x * movement_delta
-    camera.y += movement_y * movement_delta
-    camera.z += movement_z * movement_delta
+    movement = np.array([
+        keys[pygame.K_d] - keys[pygame.K_a],
+        keys[pygame.K_q] - keys[pygame.K_e],
+        keys[pygame.K_w] - keys[pygame.K_s]
+    ], dtype=float)
+    normalize(movement)
+    movement *= delta_time * movement_speed
+    if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
+        movement *= movement_speed
+    camera.move_by(movement)
     # movement = np.multiply((movement_x, movement_y, movement_z), delta_time * movement_speed * (1 + sprinting * sprint_multiplier))
     # camera_pos_uniform.value = tuple(np.add(movement, camera_pos_uniform.value))
     camera_rotation_mat_uniform.value = tuple(camera.calculate_rotation_matrix().flatten())
