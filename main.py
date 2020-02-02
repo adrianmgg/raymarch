@@ -42,12 +42,15 @@ focused = False
 
 start_time = pygame.time.get_ticks()
 prev_time = start_time
+clock = pygame.time.Clock()
 while True:
     current_time = pygame.time.get_ticks()
     elapsed_time = (current_time - start_time) / 1000
     delta_time = (current_time - prev_time) / 1000
     prev_time = current_time
     time_elapsed_uniform.value = elapsed_time
+    clock.tick()
+    pygame.display.set_caption(f'{clock.get_fps()} fps')
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
