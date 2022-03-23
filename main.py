@@ -22,7 +22,7 @@ program = ctx.program(
 )
 camera_rotation_mat_uniform = program['camera_rotation_mat']
 camera_position_uniform = program['camera_position']
-time_elapsed_uniform = program['time_elapsed']
+# time_elapsed_uniform = program['time_elapsed']
 
 vertices = np.dstack([
     [-1, -1, 1, 1],  # x
@@ -48,7 +48,7 @@ while True:
     elapsed_time = (current_time - start_time) / 1000
     delta_time = (current_time - prev_time) / 1000
     prev_time = current_time
-    time_elapsed_uniform.value = elapsed_time
+    # time_elapsed_uniform.value = elapsed_time
     clock.tick()
     pygame.display.set_caption(f'{clock.get_fps()} fps')
     for event in pygame.event.get():
